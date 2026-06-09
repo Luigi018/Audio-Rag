@@ -1,0 +1,46 @@
+# ── Dati generati a runtime ────────────────────────────────────────────────────
+# Ignora il contenuto ma traccia le cartelle tramite .gitkeep
+input/*
+!input/.gitkeep
+
+output/*
+!output/.gitkeep
+
+data/transcriptions/*
+!data/transcriptions/.gitkeep
+
+data/chroma_db/*
+!data/chroma_db/.gitkeep
+
+# ── File di studio locale (non va su GitHub) ───────────────────────────────────
+NOTE_SVILUPPO.md
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pycache
+
+# ── Test / Analisi ────────────────────────────────────────────────────────────
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ── Packaging ─────────────────────────────────────────────────────────────────
+*.egg-info/
+dist/
+build/
+
+# ── Ambienti virtuali ─────────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Editor e OS ───────────────────────────────────────────────────────────────
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
