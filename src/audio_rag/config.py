@@ -42,3 +42,17 @@ class Config:
     AUDIO_EXTENSIONS: tuple[str, ...] = (
         ".mp3", ".wav", ".m4a", ".ogg", ".flac", ".mp4"
     )
+
+    # Synthetic dataset
+    SYNTHETIC_DATASET_DIR: Path = BASE_DIR / "data" / "synthetic_dataset"
+    SYNTHETIC_AUDIO_DIR: Path = SYNTHETIC_DATASET_DIR / "audio"
+    MANIFEST_PATH: Path = SYNTHETIC_DATASET_DIR / "manifest.json"
+    GROUND_TRUTH_QUERIES_PATH: Path = SYNTHETIC_DATASET_DIR / "ground_truth_queries.json"
+    TTS_SAMPLE_RATE: int = 24000
+    KOKORO_LANG_IT: str = "it"
+    KOKORO_LANG_EN: str = "en-us"
+
+    # Kokoro model files (auto-downloaded on first use)
+    KOKORO_MODEL_DIR: Path = BASE_DIR / "data" / "models" / "kokoro"
+    KOKORO_MODEL_FILE: str = "kokoro-v1.0.int8.onnx"   # int8 = CPU-friendly, ~80 MB
+    KOKORO_VOICES_FILE: str = "voices-v1.0.bin"

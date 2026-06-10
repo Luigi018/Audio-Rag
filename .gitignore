@@ -12,6 +12,15 @@ data/transcriptions/*
 data/chroma_db/*
 !data/chroma_db/.gitkeep
 
+data/synthetic_dataset/audio/*
+!data/synthetic_dataset/audio/.gitkeep
+
+data/synthetic_dataset/manifest.json
+data/synthetic_dataset/ground_truth_queries.json
+
+data/models/*
+!data/models/.gitkeep
+
 # ── File di studio locale (non va su GitHub) ───────────────────────────────────
 NOTE_SVILUPPO.md
 

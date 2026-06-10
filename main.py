@@ -132,5 +132,45 @@ def judge(
     typer.echo(f"\nFeedback:\n{result.feedback}")
 
 
+@app.command("generate-dataset")
+def generate_dataset(
+    overwrite: bool = typer.Option(
+        False, "--overwrite", help="Regenerate files that already exist."
+    ),
+    lang: Optional[str] = typer.Option(
+        None, "--lang", help="Generate only scripts for this language ('it' or 'en')."
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable debug logging."),
+) -> None:
+    """Generate the synthetic audio dataset using Kokoro TTS."""
+    _setup_logging(verbose)
+    from src.audio_rag.config import Config
+    from src.audio_rag.dataset_generator.dataset_builder import DatasetBuilder
+    from src.audio_rag.dataset_generator.script_builder import ScriptBuilder
+    from src.audio_rag.dataset_generator.tts_engine import TTSEngine
+
+    cfg = Config()
+    sb = ScriptBuilder()
+    db = DatasetBuilder(
+        tts_engine=TTSEngine(cfg),
+        script_builder=sb,
+        config=cfg,
+    )
+
+    if lang:
+        ids = [s.script_id for s in sb.get_scripts_by_language(lang)]
+        if not ids:
+            typer.echo(f"No scripts found for language '{lang}'.", err=True)
+            raise typer.Exit(code=1)
+        typer.echo(f"Generating {len(ids)} script(s) for language '{lang}'...")
+        manifest = db.build_subset(ids)
+    else:
+        typer.echo("Generating full dataset (25 audio files)...")
+        manifest = db.build(overwrite=overwrite)
+
+    typer.echo(f"Done. {manifest.total_audio} audio file(s) saved to '{cfg.SYNTHETIC_AUDIO_DIR}'.")
+    typer.echo(f"Manifest: {cfg.MANIFEST_PATH}")
+
+
 if __name__ == "__main__":
     app()
