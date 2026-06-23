@@ -3,6 +3,9 @@
 input/*
 !input/.gitkeep
 
+# ── Evaluation results ─────────────────────────────────────────────────────────
+eval_results/
+
 output/*
 !output/.gitkeep
 
@@ -17,6 +20,7 @@ data/synthetic_dataset/audio/*
 
 data/synthetic_dataset/manifest.json
 data/synthetic_dataset/ground_truth_queries.json
+data/eval_dataset.csv
 
 data/models/*
 !data/models/.gitkeep

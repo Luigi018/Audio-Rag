@@ -268,6 +268,113 @@ python main.py judge \
 
 ---
 
+## Evaluation
+
+### LLM-as-a-Judge (`--eval`)
+
+Add `--eval` to any `query` call to automatically score the answer immediately after it is generated — no saved output file or reference answer required.
+The judge uses the same Ollama model to assess whether the answer is grounded in the retrieved context and whether it addresses the question.
+
+```bash
+python main.py query "Which audio files discuss Italian politics?" --eval
+```
+
+**Example output**
+
+```
+Answer:
+  The analysed audio files discuss Italian politics mainly in two files...
+
+Evaluation:
+  Score:        0.87
+  Faithfulness: True
+  Relevance:    True
+  Explanation:  The answer is directly supported by the retrieved context and
+                accurately addresses the question without introducing unsupported claims.
+
+Result saved to: eval_results/eval_20240615_143022.json
+```
+
+**Metrics**
+
+| Metric | Type | Description |
+|---|---|---|
+| `score` | float 0–1 | Overall quality (0 = wrong/hallucinated, 1 = accurate and complete) |
+| `faithfulness` | bool | `True` if every claim is grounded in the retrieved context |
+| `relevance` | bool | `True` if the answer directly addresses the question |
+| `explanation` | str | One or two sentences justifying the score |
+
+Results are saved automatically to `eval_results/eval_<timestamp>.json`.
+
+---
+
+### Retrieval benchmark (`evaluate_retrieval.py`)
+
+Measures retrieval accuracy against a labeled CSV dataset, without invoking the LLM generator.
+Useful for tuning `TOP_K`, the embedding model, or chunk size independently of answer quality.
+
+#### Input CSV format
+
+The CSV must have exactly these two columns:
+
+| `question` | `expected_retrieval` |
+|---|---|
+| Which audio files discuss Italian politics? | `it_female_001_politica.wav::chunk::3` |
+| Who talks about technology? | `it_male_002_tecnologia.wav::chunk::1` |
+
+The chunk ID format is `<filename>::chunk::<index>` (e.g. `it_female_001_politica.wav::chunk::3`).
+
+#### Usage
+
+```bash
+# Basic run (top-5, saves to eval_results/)
+python evaluate_retrieval.py --csv data/eval_dataset.csv
+
+# Custom top-k and output directory
+python evaluate_retrieval.py --csv data/eval_dataset.csv --top-k 10 --output-dir reports/
+```
+
+**Arguments**
+
+| Argument | Description | Default |
+|---|---|---|
+| `--csv PATH` | Path to the input CSV file *(required)* | — |
+| `--top-k N` | Number of top results to consider for Hit Rate | `5` |
+| `--output-dir DIR` | Directory for saved reports | `eval_results/` |
+
+#### Metrics
+
+| Metric | Description |
+|---|---|
+| **Hit Rate @k** | Fraction of queries where the expected chunk appeared in the top-k results (Recall@k) |
+| **MRR** | Mean Reciprocal Rank — average of 1/rank across all queries |
+| **Exact Match @1** | Fraction of queries where the top-1 result exactly matched the expected chunk |
+
+**Example output**
+
+```
+Retrieval Benchmark Results
+============================================================
+Total questions : 10
+Hit Rate @5     : 0.80  (8/10)
+MRR             : 0.72
+Exact Match @1  : 0.60  (6/10)
+
+Per-question breakdown:
+  Q1   | expected: it_female_001_politica.wav::chunk::3  | retrieved: it_female_001_politica.wav::chunk::3  | hit: True  | rank: 1
+  Q2   | expected: it_male_002_tecnologia.wav::chunk::1  | retrieved: en_male_001_technology.wav::chunk::2  | hit: False | rank: -
+  ...
+
+Report saved to: eval_results/retrieval_benchmark_20240615_143500.csv
+Summary saved to: eval_results/retrieval_benchmark_20240615_143500_summary.json
+```
+
+Two files are written per run:
+- **`retrieval_benchmark_<timestamp>.csv`** — per-question detail (question, expected, retrieved_top1, hit, rank)
+- **`retrieval_benchmark_<timestamp>_summary.json`** — aggregate metrics (hit_rate, mrr, exact_match)
+
+---
+
 ## Running tests
 
 ```bash

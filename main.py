@@ -56,6 +56,9 @@ def query(
     output_file: Optional[Path] = typer.Option(
         None, "--output", "-o", help="Save answer as JSON to this file."
     ),
+    run_eval: bool = typer.Option(
+        False, "--eval", help="Run LLM-as-a-Judge inline evaluation after answering."
+    ),
 ) -> None:
     """Query the indexed audio files with a natural-language question."""
     _setup_logging(verbose)
@@ -90,6 +93,44 @@ def query(
         }
         output_file.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         typer.echo(f"\nAnswer saved to '{output_file}'.")
+
+    if run_eval:
+        from datetime import datetime
+
+        from src.audio_rag.judge import LLMJudge
+
+        try:
+            eval_result = LLMJudge(cfg).evaluate_inline(question, answer)
+        except Exception as exc:
+            typer.echo(f"\n[eval] Judge evaluation failed: {exc}", err=True)
+            raise typer.Exit(code=1)
+
+        typer.echo("\nEvaluation:")
+        typer.echo(f"  Score:        {eval_result.score:.2f}")
+        typer.echo(f"  Faithfulness: {eval_result.faithfulness}")
+        typer.echo(f"  Relevance:    {eval_result.relevance}")
+        typer.echo(f"  Explanation:  {eval_result.explanation}")
+
+        eval_dir = Path("eval_results")
+        eval_dir.mkdir(exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        eval_file = eval_dir / f"eval_{timestamp}.json"
+        eval_file.write_text(
+            json.dumps(
+                {
+                    "query": question,
+                    "answer": answer.summary,
+                    "score": eval_result.score,
+                    "faithfulness": eval_result.faithfulness,
+                    "relevance": eval_result.relevance,
+                    "explanation": eval_result.explanation,
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        typer.echo(f"\nResult saved to: {eval_file}")
 
 
 @app.command()
