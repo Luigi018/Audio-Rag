@@ -28,9 +28,9 @@ def test_config(tmp_path: Path) -> Config:
 @pytest.fixture()
 def sample_segments() -> list[Segment]:
     return [
-        Segment(start=0.0, end=2.0, text="Ciao questo è il primo segmento"),
-        Segment(start=2.0, end=5.0, text="e questo è il secondo segmento"),
-        Segment(start=5.0, end=8.0, text="infine il terzo segmento finale"),
+        Segment(start=0.0, end=2.0, text="Hello this is the first segment"),
+        Segment(start=2.0, end=5.0, text="and this is the second segment"),
+        Segment(start=5.0, end=8.0, text="finally the third and last segment"),
     ]
 
 
@@ -53,8 +53,8 @@ def sample_chunks(tmp_path: Path) -> list[Chunk]:
     audio_file = tmp_path / "test_audio.mp3"
     audio_file.touch()
     return [
-        Chunk(text="primo chunk di testo", source_file=audio_file, chunk_index=0, start_time=0.0, end_time=2.0),
-        Chunk(text="secondo chunk di testo", source_file=audio_file, chunk_index=1, start_time=2.0, end_time=5.0),
+        Chunk(text="first chunk of text", source_file=audio_file, chunk_index=0, start_time=0.0, end_time=2.0),
+        Chunk(text="second chunk of text", source_file=audio_file, chunk_index=1, start_time=2.0, end_time=5.0),
     ]
 
 
@@ -64,7 +64,7 @@ def sample_retrieved_chunks(tmp_path: Path) -> list[RetrievedChunk]:
     audio_file.touch()
     return [
         RetrievedChunk(
-            text="primo chunk di testo",
+            text="first chunk of text",
             source_file=audio_file,
             chunk_index=0,
             start_time=0.0,
@@ -72,7 +72,7 @@ def sample_retrieved_chunks(tmp_path: Path) -> list[RetrievedChunk]:
             similarity_score=0.9,
         ),
         RetrievedChunk(
-            text="secondo chunk di testo",
+            text="second chunk of text",
             source_file=audio_file,
             chunk_index=1,
             start_time=2.0,
@@ -85,7 +85,7 @@ def sample_retrieved_chunks(tmp_path: Path) -> list[RetrievedChunk]:
 @pytest.fixture()
 def sample_answer() -> GeneratedAnswer:
     return GeneratedAnswer(
-        summary="Risposta generata di test.",
+        summary="Generated test answer.",
         references=[
             Reference(
                 file_name="test_audio.mp3",
@@ -94,5 +94,5 @@ def sample_answer() -> GeneratedAnswer:
                 end_time=5.0,
             )
         ],
-        raw_context="contesto raw di test",
+        raw_context="raw test context",
     )

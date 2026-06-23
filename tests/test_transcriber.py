@@ -85,11 +85,11 @@ class TestTranscriber:
         audio = tmp_path / "fresh.mp3"
         audio.touch()
         t = Transcriber(test_config)
-        t._model = self._make_mock_model([(0.0, 2.0, "ciao"), (2.0, 4.0, "mondo")])
+        t._model = self._make_mock_model([(0.0, 2.0, "hello"), (2.0, 4.0, "world")])
 
         result = t.transcribe_file(audio)
-        assert "ciao" in result.full_text
-        assert "mondo" in result.full_text
+        assert "hello" in result.full_text
+        assert "world" in result.full_text
         assert result.language == "it"
         assert result.duration == 5.0
         # Cache should have been written
@@ -100,11 +100,11 @@ class TestTranscriber:
         audio = tmp_path / "cacheme.mp3"
         audio.touch()
         t = Transcriber(test_config)
-        t._model = self._make_mock_model([(0.0, 1.0, "testo")])
+        t._model = self._make_mock_model([(0.0, 1.0, "text")])
         t.transcribe_file(audio)
         cache = test_config.TRANSCRIPTIONS_DIR / "cacheme.json"
         data = json.loads(cache.read_text(encoding="utf-8"))
-        assert data["full_text"] == "testo"
+        assert data["full_text"] == "text"
 
     def test_transcribe_all_skips_unsupported(self, test_config: Config, tmp_path: Path) -> None:
         (tmp_path / "audio.mp3").touch()
@@ -142,8 +142,8 @@ class TestTranscriber:
             audio = tmp_path / f"file{ext}"
             audio.touch()
             t = Transcriber(test_config)
-            t._model = self._make_mock_model([(0.0, 1.0, "testo")])
+            t._model = self._make_mock_model([(0.0, 1.0, "text")])
             result = t.transcribe_file(audio)
-            assert result.full_text == "testo"
+            assert result.full_text == "text"
             # clear cache between iterations
             (test_config.TRANSCRIPTIONS_DIR / f"file.json").unlink(missing_ok=True)

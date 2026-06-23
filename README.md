@@ -68,19 +68,19 @@ Transcriptions are cached in `data/transcriptions/` — re-running skips already
 ### 2. Query
 
 ```bash
-python main.py query "Dove si parla della politica italiana?"
+python main.py query "Which audio files discuss Italian politics?"
 ```
 
 Save the answer to a JSON file:
 
 ```bash
-python main.py query "Chi è il ministro dell'economia?" --output output/answer.json
+python main.py query "Who is the minister of economy?" --output output/answer.json
 ```
 
 ### 3. Ingest + Query in one step
 
 ```bash
-python main.py query "tema principale" --input-dir /path/to/audio/
+python main.py query "main topic" --input-dir /path/to/audio/
 ```
 
 ### 4. LLM-as-a-Judge evaluation
@@ -88,7 +88,7 @@ python main.py query "tema principale" --input-dir /path/to/audio/
 ```bash
 python main.py judge \
   --output output/answer.json \
-  --ground-truth "testo di riferimento atteso"
+  --ground-truth "expected reference text"
 ```
 
 ### Global options
@@ -103,14 +103,14 @@ python main.py judge \
 ## Example output
 
 ```
-Query: "Dove si parla della politica italiana?"
+Query: "Which audio files discuss Italian politics?"
 
-Risposta:
-Negli audio analizzati si discute di politica italiana principalmente in due file:
-- intervista_mario.mp3 (00:02:15 – 00:05:40): viene analizzata la legge di bilancio
-  e le posizioni dei principali partiti...
-- podcast_news.wav (00:10:00 – 00:13:22): si commenta la composizione del governo
-  attuale e le ultime dichiarazioni ministeriali...
+Answer:
+The analysed audio files discuss Italian politics mainly in two files:
+- intervista_mario.mp3 (00:02:15 – 00:05:40): the budget law and the positions
+  of the main parties are analysed...
+- podcast_news.wav (00:10:00 – 00:13:22): the composition of the current
+  government and the latest ministerial statements are discussed...
 
 Reference:
 [1] intervista_mario.mp3 — chunk 3, 5 (02:15–05:40)
@@ -173,65 +173,65 @@ audio-rag/
 
 ---
 
-## Dataset sintetico di test
+## Synthetic test dataset
 
-Un modulo dedicato genera 25 file audio sintetici (italiano + inglese, voci maschili e femminili)
-usando [Kokoro TTS](https://github.com/thewh1teagle/kokoro-onnx) in locale, senza API esterne.
-Gli audio coprono argomenti tematici variegati e hanno ground truth noti, ideali per valutare
-la qualità del retrieval RAG in modo riproducibile.
+A dedicated module generates 25 synthetic audio files (Italian + English, male and female voices)
+using [Kokoro TTS](https://github.com/thewh1teagle/kokoro-onnx) locally, with no external APIs.
+The audio files cover varied topics with known ground truth, ideal for evaluating
+RAG retrieval quality in a reproducible way.
 
-### Prerequisiti
+### Prerequisites
 
 ```bash
 pip install kokoro-onnx soundfile
-# oppure, con il gruppo opzionale di pyproject.toml:
+# or, using the optional dependency group in pyproject.toml:
 pip install -e ".[dataset]"
 ```
 
-### Generazione del dataset
+### Dataset generation
 
 ```bash
-# Dataset completo (25 file)
+# Full dataset (25 files)
 python scripts/generate_dataset.py
 
-# Oppure via CLI principale
+# Or via the main CLI
 python main.py generate-dataset
 
-# Rigenera sovrascrivendo i file esistenti
+# Regenerate and overwrite existing files
 python main.py generate-dataset --overwrite
 
-# Solo italiano
+# Italian only
 python main.py generate-dataset --lang it
 
-# Solo un sottoinsieme (via script standalone)
+# A specific subset (via standalone script)
 python scripts/generate_dataset.py --ids it_f_001_politica it_m_002_tecnologia
 
-# Mostra il manifest esistente
+# Show the existing manifest
 python scripts/generate_dataset.py --show-manifest
 
-# Esporta le ground-truth queries in JSON
+# Export ground-truth queries to JSON
 python scripts/generate_dataset.py --export-queries data/ground_truth_queries.json
 ```
 
-### Struttura generata
+### Generated structure
 
 ```
 data/synthetic_dataset/
-├── audio/                  # 25 file .wav (24 kHz, mono, float32)
-└── manifest.json           # Metadata: lingua, genere, voce, durata, keyword
+├── audio/                  # 25 .wav files (24 kHz, mono, float32)
+└── manifest.json           # Metadata: language, gender, voice, duration, keywords
 ```
 
-### Distribuzione del dataset
+### Dataset distribution
 
-| Lingua | Genere | N. | Voce Kokoro | Argomenti |
+| Language | Gender | N. | Kokoro voice | Topics |
 |---|---|---|---|---|
-| Italiano | Femminile | 6 | `if_sara` | politica, cucina, arte rinascimentale, turismo, economia, sport |
-| Italiano | Maschile | 7 | `im_nicola` | storia, tecnologia, ambiente, calcio, musica classica, cinema, scienza |
-| Inglese | Femminile | 6 | `af_heart` / `af_bella` | US politics, travel, health, climate change, literature, education |
-| Inglese | Maschile | 6 | `am_adam` / `am_michael` | technology, sports, history, economics, space, philosophy |
+| Italian | Female | 6 | `if_sara` | politics, cooking, Renaissance art, tourism, economics, sports |
+| Italian | Male | 7 | `im_nicola` | history, technology, environment, football, classical music, cinema, science |
+| English | Female | 6 | `af_heart` / `af_bella` | US politics, travel, health, climate change, literature, education |
+| English | Male | 6 | `am_adam` / `am_michael` | technology, sports, history, economics, space, philosophy |
 
-Tre coppie di topic condivisi (stesso `topic` su audio diversi) consentono di testare
-il retrieval multi-documento:
+Three shared topic pairs (same `topic` across different audio files) enable multi-document
+retrieval testing:
 
 | Topic | File audio |
 |---|---|
@@ -239,30 +239,30 @@ il retrieval multi-documento:
 | `economics` | `it_female_005_economia.wav`, `en_male_004_economics.wav` |
 | `sport` | `it_female_006_sport.wav`, `it_male_004_calcio.wav` |
 
-### Utilizzo come input per la pipeline RAG
+### Using as input for the RAG pipeline
 
 ```bash
-# Copia gli audio sintetici nella cartella di input
+# Copy synthetic audio files into the input folder
 cp data/synthetic_dataset/audio/*.wav input/
 
-# Indicizza
+# Index
 python main.py ingest
 
-# Query di test (con ground truth noti)
-python main.py query "Dove si parla della politica italiana?"
+# Test queries (with known ground truth)
+python main.py query "Which audio files discuss Italian politics?"
 python main.py query "Which audio files discuss technology?"
 ```
 
-### Valutazione con LLM-as-a-Judge
+### Evaluation with LLM-as-a-Judge
 
 ```bash
-# 1. Esegui la query e salva l'output
-python main.py query "Dove si parla della politica italiana?" \
-  --output output/risultato_politica.json
+# 1. Run a query and save the output
+python main.py query "Which audio files discuss Italian politics?" \
+  --output output/politics_result.json
 
-# 2. Valuta con ground truth dal manifest
+# 2. Evaluate against the ground truth from the manifest
 python main.py judge \
-  --output output/risultato_politica.json \
+  --output output/politics_result.json \
   --ground-truth "it_female_001_politica.wav, it_male_004_calcio.wav"
 ```
 

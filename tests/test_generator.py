@@ -23,8 +23,8 @@ def two_file_chunks(tmp_path: Path) -> list[RetrievedChunk]:
     a.touch()
     b.touch()
     return [
-        RetrievedChunk(text="politica italiana", source_file=a, chunk_index=0, start_time=135.0, end_time=340.0, similarity_score=0.9),
-        RetrievedChunk(text="governo attuale", source_file=b, chunk_index=2, start_time=600.0, end_time=802.0, similarity_score=0.8),
+        RetrievedChunk(text="Italian politics", source_file=a, chunk_index=0, start_time=135.0, end_time=340.0, similarity_score=0.9),
+        RetrievedChunk(text="current government", source_file=b, chunk_index=2, start_time=600.0, end_time=802.0, similarity_score=0.8),
     ]
 
 
@@ -76,13 +76,13 @@ class TestGenerator:
         self, generator: Generator, sample_retrieved_chunks: list[RetrievedChunk]
     ) -> None:
         mock_client = MagicMock()
-        mock_client.chat.return_value = _mock_ollama_response("Risposta di test.")
+        mock_client.chat.return_value = _mock_ollama_response("Test answer.")
 
         with patch("src.audio_rag.generator.ollama") as mock_ollama:
             mock_ollama.Client.return_value = mock_client
-            answer = generator.generate_answer("Chi parla?", sample_retrieved_chunks)
+            answer = generator.generate_answer("Who is speaking?", sample_retrieved_chunks)
 
-        assert answer.summary == "Risposta di test."
+        assert answer.summary == "Test answer."
         mock_client.chat.assert_called_once()
 
     def test_generate_answer_prompt_contains_query(
@@ -99,19 +99,19 @@ class TestGenerator:
 
         with patch("src.audio_rag.generator.ollama") as mock_ollama:
             mock_ollama.Client.return_value = mock_client
-            generator.generate_answer("politica italiana?", sample_retrieved_chunks)
+            generator.generate_answer("Italian politics?", sample_retrieved_chunks)
 
-        assert "politica italiana?" in captured_prompt["content"]
+        assert "Italian politics?" in captured_prompt["content"]
 
     def test_generate_answer_references_built(
         self, generator: Generator, two_file_chunks: list[RetrievedChunk]
     ) -> None:
         mock_client = MagicMock()
-        mock_client.chat.return_value = _mock_ollama_response("Risposta.")
+        mock_client.chat.return_value = _mock_ollama_response("Answer.")
 
         with patch("src.audio_rag.generator.ollama") as mock_ollama:
             mock_ollama.Client.return_value = mock_client
-            answer = generator.generate_answer("domanda", two_file_chunks)
+            answer = generator.generate_answer("question", two_file_chunks)
 
         assert len(answer.references) == 2
         file_names = {r.file_name for r in answer.references}

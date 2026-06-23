@@ -71,7 +71,7 @@ def test_synthesize_returns_float32_array(engine, mock_kokoro):
 
 def test_synthesize_output_has_nonzero_length(engine, mock_kokoro):
     mock_kokoro.create.return_value = (np.ones(48000, dtype=np.float32), 24000)
-    audio = engine.synthesize("Ciao mondo", voice="if_sara", lang="it")
+    audio = engine.synthesize("Hello world", voice="if_sara", lang="it")
     assert audio.shape == (48000,)
 
 

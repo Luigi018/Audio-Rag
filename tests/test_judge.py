@@ -23,14 +23,14 @@ _VALID_RESPONSE = """
 REFERENCE_SCORE: 8
 COMPLETENESS_SCORE: 7
 HALLUCINATION: NO
-FEEDBACK: La risposta è accurata e ben strutturata, con buone citazioni delle fonti.
+FEEDBACK: The answer is accurate and well-structured, with good source citations.
 """
 
 _HALLUCINATION_RESPONSE = """
 REFERENCE_SCORE: 3
 COMPLETENESS_SCORE: 5
-HALLUCINATION: SI
-FEEDBACK: La risposta contiene informazioni non presenti nel ground truth.
+HALLUCINATION: YES
+FEEDBACK: The answer contains information not present in the ground truth.
 """
 
 
@@ -40,7 +40,7 @@ class TestLLMJudgeParsing:
         assert ref == 8.0
         assert comp == 7.0
         assert hall is False
-        assert "accurata" in feedback
+        assert "accurate" in feedback
 
     def test_parse_hallucination_yes(self, judge: LLMJudge) -> None:
         _, _, hall, _ = judge._parse_response(_HALLUCINATION_RESPONSE)
@@ -71,12 +71,12 @@ class TestLLMJudgeParsing:
         assert comp == 8.5
 
     def test_parse_missing_hallucination_defaults_to_false(self, judge: LLMJudge) -> None:
-        raw = "REFERENCE_SCORE: 5\nCOMPLETENESS_SCORE: 5\nFEEDBACK: nessuna info"
+        raw = "REFERENCE_SCORE: 5\nCOMPLETENESS_SCORE: 5\nFEEDBACK: no info"
         _, _, hall, _ = judge._parse_response(raw)
         assert hall is False
 
     def test_parse_case_insensitive_hallucination(self, judge: LLMJudge) -> None:
-        raw = "REFERENCE_SCORE: 5\nCOMPLETENESS_SCORE: 5\nHALLUCINATION: si\nFEEDBACK: ok"
+        raw = "REFERENCE_SCORE: 5\nCOMPLETENESS_SCORE: 5\nHALLUCINATION: yes\nFEEDBACK: ok"
         _, _, hall, _ = judge._parse_response(raw)
         assert hall is True
 
@@ -90,13 +90,13 @@ class TestLLMJudgeEvaluate:
 
         with patch("src.audio_rag.judge.ollama") as mock_ollama:
             mock_ollama.Client.return_value = mock_client
-            result = judge.evaluate("domanda", sample_answer, "ground truth di riferimento")
+            result = judge.evaluate("question", sample_answer, "reference ground truth")
 
         assert isinstance(result, JudgeResult)
         assert result.reference_score == 8.0
         assert result.completeness_score == 7.0
         assert result.hallucination_detected is False
-        assert "accurata" in result.feedback
+        assert "accurate" in result.feedback
 
     def test_evaluate_stores_raw_response(
         self, judge: LLMJudge, sample_answer: GeneratedAnswer
@@ -124,10 +124,10 @@ class TestLLMJudgeEvaluate:
 
         with patch("src.audio_rag.judge.ollama") as mock_ollama:
             mock_ollama.Client.return_value = mock_client
-            judge.evaluate("la mia domanda", sample_answer, "il mio ground truth")
+            judge.evaluate("my question", sample_answer, "my ground truth")
 
-        assert "la mia domanda" in captured["content"]
-        assert "il mio ground truth" in captured["content"]
+        assert "my question" in captured["content"]
+        assert "my ground truth" in captured["content"]
 
     def test_evaluate_missing_ollama_raises(
         self, judge: LLMJudge, sample_answer: GeneratedAnswer

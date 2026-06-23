@@ -70,7 +70,7 @@ def query(
     else:
         answer = pipeline.query(question)
 
-    typer.echo(f"\nRisposta:\n{answer.summary}")
+    typer.echo(f"\nAnswer:\n{answer.summary}")
     if answer.references:
         typer.echo(f"\nReference:\n{answer.format_references()}")
 

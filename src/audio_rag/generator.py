@@ -51,23 +51,23 @@ class GeneratedAnswer:
 
 
 _PROMPT_TEMPLATE = """\
-Sei un assistente che risponde a domande basandosi su trascrizioni di file audio.
+You are an assistant that answers questions based on audio file transcriptions.
 
-Di seguito sono riportati i frammenti audio più rilevanti, raggruppati per file sorgente:
+Below are the most relevant audio excerpts, grouped by source file:
 
 {context}
 
 ---
 
-Domanda dell'utente: {query}
+User question: {query}
 
-Istruzioni:
-- Rispondi in italiano in modo chiaro e strutturato.
-- Cita esplicitamente i file audio e i momenti temporali rilevanti.
-- Non inventare informazioni non presenti nei frammenti forniti.
-- Se i frammenti non contengono informazioni sufficienti, dillo esplicitamente.
+Instructions:
+- Answer clearly and in a structured way.
+- Explicitly cite the audio files and relevant timestamps.
+- Do not invent information not present in the provided excerpts.
+- If the excerpts do not contain sufficient information, state it explicitly.
 
-Risposta:
+Answer:
 """
 
 

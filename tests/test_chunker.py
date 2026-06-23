@@ -31,16 +31,16 @@ def _make_transcription(tmp_path: Path, text: str, segments: list[Segment] | Non
 
 class TestChunkerShortText:
     def test_short_text_single_chunk(self, cfg: Config, tmp_path: Path) -> None:
-        t = _make_transcription(tmp_path, "Testo breve.")
+        t = _make_transcription(tmp_path, "Short text.")
         chunker = Chunker(cfg)
         chunks = chunker.chunk(t)
         assert len(chunks) == 1
-        assert chunks[0].text == "Testo breve."
+        assert chunks[0].text == "Short text."
         assert chunks[0].chunk_index == 0
 
     def test_short_text_timestamps_preserved(self, tmp_path: Path, cfg: Config) -> None:
-        segs = [Segment(0.0, 1.0, "Breve"), Segment(1.0, 3.0, "testo")]
-        t = _make_transcription(tmp_path, "Breve testo", segs)
+        segs = [Segment(0.0, 1.0, "Short"), Segment(1.0, 3.0, "text")]
+        t = _make_transcription(tmp_path, "Short text", segs)
         chunker = Chunker(cfg)
         chunks = chunker.chunk(t)
         assert chunks[0].start_time == 0.0

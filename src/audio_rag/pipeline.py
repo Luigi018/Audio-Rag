@@ -69,7 +69,7 @@ class AudioRAGPipeline:
         if not chunks:
             logger.warning("No chunks retrieved for query.")
             return GeneratedAnswer(
-                summary="Non ho trovato informazioni rilevanti negli audio indicizzati.",
+                summary="No relevant information found in the indexed audio files.",
                 references=[],
                 raw_context="",
             )

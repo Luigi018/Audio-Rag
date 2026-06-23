@@ -1,5 +1,5 @@
-# ── Dati generati a runtime ────────────────────────────────────────────────────
-# Ignora il contenuto ma traccia le cartelle tramite .gitkeep
+# ── Runtime-generated data ─────────────────────────────────────────────────────
+# Ignore content but track folders via .gitkeep
 input/*
 !input/.gitkeep
 
@@ -21,7 +21,7 @@ data/synthetic_dataset/ground_truth_queries.json
 data/models/*
 !data/models/.gitkeep
 
-# ── File di studio locale (non va su GitHub) ───────────────────────────────────
+# ── Local developer notes (excluded from GitHub) ───────────────────────────────
 NOTE_SVILUPPO.md
 
 # ── Python ────────────────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ __pycache__/
 *.pyd
 *.pycache
 
-# ── Test / Analisi ────────────────────────────────────────────────────────────
+# ── Tests / Analysis ──────────────────────────────────────────────────────────
 .pytest_cache/
 .mypy_cache/
 .coverage
@@ -42,12 +42,12 @@ htmlcov/
 dist/
 build/
 
-# ── Ambienti virtuali ─────────────────────────────────────────────────────────
+# ── Virtual environments ──────────────────────────────────────────────────────
 .venv/
 venv/
 env/
 
-# ── Editor e OS ───────────────────────────────────────────────────────────────
+# ── Editors and OS ────────────────────────────────────────────────────────────
 *.log
 .DS_Store
 Thumbs.db
