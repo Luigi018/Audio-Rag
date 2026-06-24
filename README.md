@@ -1,4 +1,4 @@
-# audio-rag
+# Audio-Rag
 
 A local, privacy-first **RAG (Retrieval-Augmented Generation) pipeline** over audio files.
 
