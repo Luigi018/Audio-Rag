@@ -7,7 +7,7 @@ import pytest
 
 from src.audio_rag.config import Config
 from src.audio_rag.generator import GeneratedAnswer, Reference
-from src.audio_rag.judge import JudgeResult, LLMJudge
+from src.audio_rag.judge import InlineEvalResult, JudgeResult, LLMJudge
 
 
 @pytest.fixture()
@@ -148,3 +148,144 @@ class TestLLMJudgeEvaluate:
 
         assert result.hallucination_detected is True
         assert result.reference_score == 3.0
+
+
+# ── Inline evaluation (no ground truth) ──────────────────────────────────────
+
+_INLINE_VALID_RESPONSE = """
+SCORE: 0.85
+FAITHFULNESS: YES
+RELEVANCE: YES
+EXPLANATION: The answer is well-grounded and directly addresses the question.
+"""
+
+_INLINE_UNFAITHFUL_RESPONSE = """
+SCORE: 0.2
+FAITHFULNESS: NO
+RELEVANCE: YES
+EXPLANATION: The answer contains claims not supported by the retrieved context.
+"""
+
+
+class TestLLMJudgeEvaluateInline:
+    def test_happy_path_returns_inline_eval_result(
+        self, judge: LLMJudge, sample_answer: GeneratedAnswer
+    ) -> None:
+        mock_client = MagicMock()
+        mock_client.chat.return_value = _mock_response(_INLINE_VALID_RESPONSE)
+
+        with patch("src.audio_rag.judge.ollama") as mock_ollama:
+            mock_ollama.Client.return_value = mock_client
+            result = judge.evaluate_inline("question", sample_answer)
+
+        assert isinstance(result, InlineEvalResult)
+        assert result.score == pytest.approx(0.85)
+        assert result.faithfulness is True
+        assert result.relevance is True
+        assert "grounded" in result.explanation
+
+    def test_faithfulness_false_when_no_in_response(
+        self, judge: LLMJudge, sample_answer: GeneratedAnswer
+    ) -> None:
+        mock_client = MagicMock()
+        mock_client.chat.return_value = _mock_response(_INLINE_UNFAITHFUL_RESPONSE)
+
+        with patch("src.audio_rag.judge.ollama") as mock_ollama:
+            mock_ollama.Client.return_value = mock_client
+            result = judge.evaluate_inline("q", sample_answer)
+
+        assert result.faithfulness is False
+        assert result.relevance is True
+        assert result.score == pytest.approx(0.2)
+
+    def test_score_clamped_to_1(
+        self, judge: LLMJudge, sample_answer: GeneratedAnswer
+    ) -> None:
+        raw = "SCORE: 1.5\nFAITHFULNESS: YES\nRELEVANCE: YES\nEXPLANATION: ok"
+        mock_client = MagicMock()
+        mock_client.chat.return_value = _mock_response(raw)
+
+        with patch("src.audio_rag.judge.ollama") as mock_ollama:
+            mock_ollama.Client.return_value = mock_client
+            result = judge.evaluate_inline("q", sample_answer)
+
+        assert result.score == 1.0
+
+    def test_score_clamped_to_0(
+        self, judge: LLMJudge, sample_answer: GeneratedAnswer
+    ) -> None:
+        raw = "SCORE: -0.5\nFAITHFULNESS: NO\nRELEVANCE: NO\nEXPLANATION: ok"
+        mock_client = MagicMock()
+        mock_client.chat.return_value = _mock_response(raw)
+
+        with patch("src.audio_rag.judge.ollama") as mock_ollama:
+            mock_ollama.Client.return_value = mock_client
+            result = judge.evaluate_inline("q", sample_answer)
+
+        assert result.score == 0.0
+
+    def test_missing_fields_default_safely(
+        self, judge: LLMJudge, sample_answer: GeneratedAnswer
+    ) -> None:
+        mock_client = MagicMock()
+        mock_client.chat.return_value = _mock_response("nothing parseable here")
+
+        with patch("src.audio_rag.judge.ollama") as mock_ollama:
+            mock_ollama.Client.return_value = mock_client
+            result = judge.evaluate_inline("q", sample_answer)
+
+        assert result.score == 0.0
+        assert result.faithfulness is False
+        assert result.relevance is False
+
+    def test_missing_ollama_raises(
+        self, judge: LLMJudge, sample_answer: GeneratedAnswer
+    ) -> None:
+        with patch("src.audio_rag.judge.ollama", None):
+            with pytest.raises(ImportError, match="ollama"):
+                judge.evaluate_inline("q", sample_answer)
+
+    def test_prompt_contains_query_and_context(
+        self, judge: LLMJudge, sample_answer: GeneratedAnswer
+    ) -> None:
+        captured: dict = {}
+        mock_client = MagicMock()
+
+        def capture(model, messages):
+            captured["content"] = messages[0]["content"]
+            return _mock_response(_INLINE_VALID_RESPONSE)
+
+        mock_client.chat.side_effect = capture
+
+        with patch("src.audio_rag.judge.ollama") as mock_ollama:
+            mock_ollama.Client.return_value = mock_client
+            judge.evaluate_inline("my specific question", sample_answer)
+
+        assert "my specific question" in captured["content"]
+        assert sample_answer.raw_context in captured["content"]
+
+    def test_stores_raw_response(
+        self, judge: LLMJudge, sample_answer: GeneratedAnswer
+    ) -> None:
+        mock_client = MagicMock()
+        mock_client.chat.return_value = _mock_response(_INLINE_VALID_RESPONSE)
+
+        with patch("src.audio_rag.judge.ollama") as mock_ollama:
+            mock_ollama.Client.return_value = mock_client
+            result = judge.evaluate_inline("q", sample_answer)
+
+        assert result.raw_response.strip() == _INLINE_VALID_RESPONSE.strip()
+
+    def test_case_insensitive_yes_no(
+        self, judge: LLMJudge, sample_answer: GeneratedAnswer
+    ) -> None:
+        raw = "SCORE: 0.5\nFAITHFULNESS: yes\nRELEVANCE: no\nEXPLANATION: ok"
+        mock_client = MagicMock()
+        mock_client.chat.return_value = _mock_response(raw)
+
+        with patch("src.audio_rag.judge.ollama") as mock_ollama:
+            mock_ollama.Client.return_value = mock_client
+            result = judge.evaluate_inline("q", sample_answer)
+
+        assert result.faithfulness is True
+        assert result.relevance is False

@@ -100,6 +100,45 @@ python main.py judge \
 
 ---
 
+## Streamlit demo
+
+An interactive web UI that wraps the full pipeline: upload audio files, transcribe and index them, then chat with them directly in the browser — no CLI required.
+
+### Prerequisites
+
+```bash
+pip install streamlit
+# Ollama must be running locally with the required model pulled
+```
+
+### Run
+
+```bash
+streamlit run demo/app.py
+# → http://localhost:8501
+```
+
+### Features
+
+**Sidebar**
+- Upload one or more audio files (`.mp3`, `.wav`, `.m4a`, `.ogg`, `.flac`)
+- Click **Transcribe & Index** — runs Whisper transcription then indexes into ChromaDB
+- Knowledge base status: 🔴 empty / 🟢 N files indexed
+- Collapsible list of files indexed in the current session
+
+**💬 Chat tab**
+- Ask natural-language questions about the uploaded audio
+- Answers are shown with collapsible `📎 Sources used`, listing only the files explicitly cited in the generated response
+
+**📄 Transcriptions tab**
+- Full transcription text for every file indexed in the current session
+
+### Isolated knowledge base
+
+The demo writes to `data/demo_chroma_db/` — a directory completely separate from the CLI pipeline's `data/chroma_db/`. Audio indexed via `python main.py ingest` does not appear in the demo, and vice versa.
+
+---
+
 ## Example output
 
 ```
@@ -163,10 +202,15 @@ audio-rag/
 │           ├── script_builder.py #   25 hardcoded scripts
 │           ├── dataset_builder.py#   Orchestration + manifest
 │           └── manifest.py       #   Serialization + ground-truth queries
+├── demo/
+│   ├── app.py                    # Streamlit entry point
+│   ├── session.py                # Centralized st.session_state management
+│   └── ui_components.py          # Reusable UI components
 ├── scripts/
 │   └── generate_dataset.py       # Standalone CLI for dataset generation
 ├── tests/                        # pytest test suite
 ├── main.py                       # CLI entry point (typer)
+├── evaluate_retrieval.py         # Standalone retrieval benchmark script
 ├── requirements.txt
 └── pyproject.toml
 ```
